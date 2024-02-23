@@ -1,17 +1,21 @@
 package com.URLShortener.service;
 
+import com.URLShortener.DTO.MultiCreateShortURLReqDTO;
 import com.URLShortener.exception.ApplicationException;
 import com.URLShortener.model.ShortenedURL;
 import com.URLShortener.repo.ShortenedURLRepository;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Service
 public class ShortenURLService {
@@ -27,6 +31,30 @@ public class ShortenURLService {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
+    private ExecutorService executorService = Executors.newFixedThreadPool(10); // Adjust the pool size as needed
+
+
+    public void shortenURLs(MultiCreateShortURLReqDTO multiCreateShortURLReqDTO) throws InterruptedException, ExecutionException {
+        List<Callable<ShortenedURL>> tasks = new ArrayList<>();
+        for(long i =0; i< multiCreateShortURLReqDTO.getCount(); i++){
+            String currentTime = String.valueOf(System.nanoTime());
+            String sha256Hash = DigestUtils.sha256Hex(currentTime);
+            tasks.add(() -> shortenURL("www." + sha256Hash + ".com"));
+//            originalUrls.add("www." + sha256Hash + ".com");
+        }
+//        for (String originalUrl : originalUrls) {
+//            tasks.add(() -> shortenURL(originalUrl));
+//        }
+
+        List<Future<ShortenedURL>> futures = executorService.invokeAll(tasks);
+
+//        List<ShortenedURL> shortenedURLs = new ArrayList<>();
+//        for (Future<ShortenedURL> future : futures) {
+//            shortenedURLs.add(future.get());
+//        }
+
+        return;
+    }
     public ShortenedURL shortenURL(String originalUrl) throws Exception {
 
         String uniqueString = generateUniqueString(originalUrl);
@@ -74,7 +102,7 @@ public class ShortenURLService {
     private Boolean stringExists(String uniqueString, String originalUrl) throws Exception {
         // Check if the generated string already exists in the database
         Optional<ShortenedURL> shortenedURL = shortenedURLRepository.findById(uniqueString);
-        if(shortenedURL.isPresent()){
+        if(shortenedURL.isPresent() && shortenedURL.get().getOriginalUrl().equals(originalUrl)){
             throw new ApplicationException("500", String.format("Shortened URL already exists for original URL: %s. Shortened URL: %s", originalUrl, uniqueString));
         }
         return false;
