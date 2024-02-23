@@ -92,9 +92,11 @@ public class ShortenURLService {
         }
         Optional<ShortenedURL> shortenedURL = shortenedURLRepository.findById(shortUrl);
         if(shortenedURL.isEmpty()){
-            throw new ApplicationException("501", String.format("the shortUrl for originalUrl: {} does not exist in DB", shortUrl));
+            throw new ApplicationException("501", String.format("the shortUrl for originalUrl: %s does not exist in DB", shortUrl));
         }
-        redisService.setToRedis(shortenedURL.get().getOriginalUrl(), shortenedURL.get().getOriginalUrl());
+//        redisTemplate.opsForValue().set(shortenedURL.get().getOriginalUrl(), shortenedURL.get().getShortUrl(), 1, TimeUnit.HOURS);
+
+        redisService.setToRedis(shortenedURL.get().getOriginalUrl(), shortenedURL.get().getShortUrl());
         return shortenedURL.get();
     }
 }

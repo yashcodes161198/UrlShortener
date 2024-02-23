@@ -24,9 +24,23 @@ public class ShortenURLController {
         } catch (Exception e) {
             return new ServiceResDTO.ServiceResponseBuilder().setStatus(false)
                     .setStatusCode("500")
-                    .setStatusMessage("unknown error occurred").build();
+                    .setStatusMessage("unknown error occurred" + e.toString()).build();
         }
     }
+//    @PostMapping("/shorten-multi")
+//    public ServiceResDTO createShortUrls(@RequestBody ) throws Exception {
+//        try {
+//            ShortenedURL shortenedURL = shortenURLService.shortenURL(originalUrl);
+//            return new ServiceResDTO.ServiceResponseBuilder().setStatus(true).setResponse(shortenedURL).build();
+//        } catch (ApplicationException ae) {
+//            return new ServiceResDTO.ServiceResponseBuilder().setStatus(false).setStatusCode(ae.getErrorCode())
+//                    .setStatusMessage(ae.getMessage()).build();
+//        } catch (Exception e) {
+//            return new ServiceResDTO.ServiceResponseBuilder().setStatus(false)
+//                    .setStatusCode("500")
+//                    .setStatusMessage("unknown error occurred" + e.toString()).build();
+//        }
+//    }
 
     @GetMapping("/get-original-url")
     public ServiceResDTO fetchOriginalUrl(@RequestHeader String shortUrl) throws Exception {
@@ -39,7 +53,7 @@ public class ShortenURLController {
         } catch (Exception e) {
             return new ServiceResDTO.ServiceResponseBuilder().setStatus(false)
                     .setStatusCode("500")
-                    .setStatusMessage("unknown error occurred").build();
+                    .setStatusMessage("unknown error occurred" + e.getMessage()).build();
         }
     }
 }
