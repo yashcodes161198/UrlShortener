@@ -36,7 +36,12 @@ public class ShortenURLService {
 
     public void shortenURLs(MultiCreateShortURLReqDTO multiCreateShortURLReqDTO) throws InterruptedException, ExecutionException {
         List<Callable<ShortenedURL>> tasks = new ArrayList<>();
+        long counter = 0;
         for(long i =0; i< multiCreateShortURLReqDTO.getCount(); i++){
+            if((i%10000)==0){
+                counter += i;
+                System.out.println(counter);
+            }
             String currentTime = String.valueOf(System.nanoTime());
             String sha256Hash = DigestUtils.sha256Hex(currentTime);
             tasks.add(() -> shortenURL("www." + sha256Hash + ".com"));
@@ -71,9 +76,9 @@ public class ShortenURLService {
         return shortenedURL;
     }
     public String generateUniqueString(String originalUrl) throws Exception {
-        String uniqueString;
+        String uniqueString = "";
         do {
-            uniqueString = generateRandomString(originalUrl);
+            uniqueString = generateRandomString(originalUrl + uniqueString);
         } while (stringExists(uniqueString, originalUrl)); // Check if the generated string already exists
         return uniqueString;
     }
@@ -119,7 +124,7 @@ public class ShortenURLService {
             return shortenedURL;
         }
         Optional<ShortenedURL> shortenedURL = shortenedURLRepository.findById(shortUrl);
-        if(shortenedURL.isEmpty()){
+        if(!shortenedURL.isPresent()){
             throw new ApplicationException("501", String.format("the shortUrl for originalUrl: %s does not exist in DB", shortUrl));
         }
 //        redisTemplate.opsForValue().set(shortenedURL.get().getOriginalUrl(), shortenedURL.get().getShortUrl(), 1, TimeUnit.HOURS);
